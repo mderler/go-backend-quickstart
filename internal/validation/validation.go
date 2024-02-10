@@ -33,15 +33,15 @@ func Validate(s interface{}) []byte {
 	}
 	errorResponse["invalid-params"] = invalidParams
 
-	message, err := json.Marshal(errorResponse)
+	msg, err := json.Marshal(errorResponse)
 	if err != nil {
 		log.Println("Error marshalling error response:", err)
 		return []byte(`{"error": "validation-error", "message": "Your request parameters didn't validate."}`)
 	}
 
-	log.Println("Validation error:", string(message))
+	log.Println("Validation error:", string(msg))
 
-	return message
+	return msg
 }
 
 func getErrorMessage(tag string) string {
