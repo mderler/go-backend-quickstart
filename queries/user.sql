@@ -14,12 +14,13 @@ INSERT INTO "user" (
 )
 RETURNING *;
 
--- name: UpdateUser :exec
+-- name: UpdateUser :one
 UPDATE "user"
   set username = $2,
   email = $3,
   password = $4
-WHERE id = $1;
+WHERE id = $1
+RETURNING *;
 
 -- name: DeleteUser :exec
 DELETE FROM "user"
