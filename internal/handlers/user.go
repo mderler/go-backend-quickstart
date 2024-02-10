@@ -9,12 +9,6 @@ import (
 	"github.com/mderler/simple-go-backend/internal/validation"
 )
 
-type userRequest struct {
-	Username string `validate:"required,min=3,max=20"`
-	Email    string `validate:"required,email"`
-	Password string `validate:"required,min=8,max=255"`
-}
-
 type UserHandler struct {
 	*chi.Mux
 	queries *db.Queries
