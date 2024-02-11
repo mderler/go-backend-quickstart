@@ -79,10 +79,6 @@ func (u *UserHandler) getUsers(w http.ResponseWriter, r *http.Request) {
 		writeInternalServerError(w, err)
 		return
 	}
-	if users == nil {
-		w.Write([]byte("[]"))
-		return
-	}
 
 	resp, err := json.Marshal(users)
 	if err != nil {
@@ -200,7 +196,6 @@ func (u *UserHandler) deleteUser(w http.ResponseWriter, r *http.Request) {
 // @Failure 404 "User not found"
 // @Failure 500 "Internal server error"
 // @Router /user/{id}/todos [get]
-
 func (u *UserHandler) getUserTodos(w http.ResponseWriter, r *http.Request) {
 	userIdParam := chi.URLParam(r, "id")
 	if userIdParam == "" {

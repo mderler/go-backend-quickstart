@@ -92,7 +92,7 @@ func (q *Queries) GetTodosOfUser(ctx context.Context, userID int32) ([]GetTodosO
 		return nil, err
 	}
 	defer rows.Close()
-	var items []GetTodosOfUserRow
+	items := []GetTodosOfUserRow{}
 	for rows.Next() {
 		var i GetTodosOfUserRow
 		if err := rows.Scan(
