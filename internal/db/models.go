@@ -15,6 +15,7 @@ type Todo struct {
 	Description pgtype.Text
 	CreatedAt   pgtype.Timestamp
 	UpdatedAt   pgtype.Timestamp
+	Completed   pgtype.Bool
 }
 
 type TodoUser struct {
