@@ -22,6 +22,6 @@ UPDATE "user"
 WHERE id = $1
 RETURNING *;
 
--- name: DeleteUser :exec
+-- name: DeleteUser :execrows
 DELETE FROM "user"
 WHERE id = $1;
