@@ -10,11 +10,16 @@ import (
 
 type Todo struct {
 	ID          int32
-	UserID      int32
+	CreatorID   int32
 	Title       string
 	Description pgtype.Text
 	CreatedAt   pgtype.Timestamp
 	UpdatedAt   pgtype.Timestamp
+}
+
+type TodoUser struct {
+	TodoID int32
+	UserID int32
 }
 
 type User struct {
