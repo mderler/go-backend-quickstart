@@ -1,7 +1,7 @@
 -include .env
 export
 
-.PHONY: create-migration apply-migrations run-postgres stop-postgres sqlc-gen
+.PHONY: create-migration apply-migrations run-postgres start-postgres stop-postgres sqlc-gen
 
 GOOSE=github.com/pressly/goose/v3/cmd/goose@latest
 
@@ -23,6 +23,9 @@ run-postgres:
 		-e POSTGRES_PASSWORD=$(POSTGRES_PASSWORD) \
 		-e POSTGRES_DB=$(POSTGRES_DB) \
 		-p 5432:5432 -d postgres:alpine
+
+start-postgres:
+	$(DOCKER_CLIENT) start postgres
 
 stop-postgres:
 	$(DOCKER_CLIENT) stop postgres
