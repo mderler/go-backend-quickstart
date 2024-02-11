@@ -14,6 +14,9 @@ import (
 	"github.com/mderler/simple-go-backend/internal/handlers"
 	"github.com/mderler/simple-go-backend/internal/validation"
 	"go.uber.org/fx"
+
+	_ "github.com/mderler/simple-go-backend/docs"
+	httpSwagger "github.com/swaggo/http-swagger/v2"
 )
 
 func newChiServer(lc fx.Lifecycle, userHandler *handlers.UserHandler, todoHandler *handlers.TodoHandler) *http.Server {
@@ -27,6 +30,10 @@ func newChiServer(lc fx.Lifecycle, userHandler *handlers.UserHandler, todoHandle
 		r.Mount("/user", userHandler)
 		r.Mount("/todo", todoHandler)
 	})
+
+	r.Get("/swagger/*", httpSwagger.Handler(
+		httpSwagger.URL("http://localhost:3000/swagger/doc.json"),
+	))
 
 	srv := &http.Server{Addr: ":3000", Handler: r}
 
@@ -50,6 +57,11 @@ func newChiServer(lc fx.Lifecycle, userHandler *handlers.UserHandler, todoHandle
 	return srv
 }
 
+// @title Go Example API
+// @version 1.0
+// @description This is a sample API Server.
+// @license.name MIT
+// @BasePath /v1
 func main() {
 	if err := godotenv.Load(); err != nil {
 		log.Fatal("Error loading .env file")

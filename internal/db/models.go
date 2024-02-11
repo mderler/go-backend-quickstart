@@ -5,27 +5,27 @@
 package db
 
 import (
-	"github.com/jackc/pgx/v5/pgtype"
+	"time"
 )
 
 type Todo struct {
-	ID          int32
-	CreatorID   int32
-	Title       string
-	Description pgtype.Text
-	CreatedAt   pgtype.Timestamp
-	UpdatedAt   pgtype.Timestamp
-	Completed   pgtype.Bool
+	ID          int32     `json:"id"`
+	CreatorID   int32     `json:"creator_id"`
+	Title       string    `json:"title"`
+	Description string    `json:"description"`
+	Completed   bool      `json:"completed"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
 }
 
 type TodoUser struct {
-	TodoID int32
-	UserID int32
+	TodoID int32 `json:"todo_id"`
+	UserID int32 `json:"user_id"`
 }
 
 type User struct {
-	ID       int32
-	Username string
-	Email    string
-	Password string
+	ID       int32  `json:"id"`
+	Username string `json:"username"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
 }

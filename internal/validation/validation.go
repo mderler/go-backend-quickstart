@@ -21,22 +21,22 @@ func Validate(s interface{}) []byte {
 	}
 
 	errorResponse := make(map[string]interface{})
-	errorResponse["error"] = "validation-error"
-	errorResponse["message"] = "Your request parameters didn't validate."
+	errorResponse["type"] = "validation-error"
+	errorResponse["detail"] = "Your request parameters didn't validate."
 
 	invalidParams := make(map[string]interface{})
 	for _, e := range err.(validator.ValidationErrors) {
 		fieldName := e.Field()
 		tag := e.Tag()
 		message := fmt.Sprintf("The %s %s", fieldName, getErrorMessage(tag))
-		invalidParams[fieldName] = map[string]interface{}{"message": message, "tag": tag}
+		invalidParams[fieldName] = map[string]interface{}{"detail": message, "tag": tag}
 	}
 	errorResponse["invalid-params"] = invalidParams
 
 	msg, err := json.Marshal(errorResponse)
 	if err != nil {
 		log.Println("Error marshalling error response:", err)
-		return []byte(`{"error": "validation-error", "message": "Your request parameters didn't validate."}`)
+		return []byte(`{"type": "validation-error", "detail": "Your request parameters didn't validate."}`)
 	}
 
 	log.Println("Validation error:", string(msg))

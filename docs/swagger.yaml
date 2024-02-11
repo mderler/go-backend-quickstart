@@ -1,0 +1,299 @@
+basePath: /v1
+definitions:
+  db.Todo:
+    properties:
+      completed:
+        type: boolean
+      created_at:
+        type: string
+      creator_id:
+        type: integer
+      description:
+        type: string
+      id:
+        type: integer
+      title:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  db.User:
+    properties:
+      email:
+        type: string
+      id:
+        type: integer
+      password:
+        type: string
+      username:
+        type: string
+    type: object
+  handlers.todoAssignRequest:
+    properties:
+      userId:
+        type: integer
+    required:
+    - userId
+    type: object
+  handlers.todoCreateRequest:
+    properties:
+      creatorId:
+        type: integer
+      description:
+        maxLength: 1000
+        type: string
+      title:
+        maxLength: 255
+        minLength: 1
+        type: string
+    required:
+    - creatorId
+    - description
+    - title
+    type: object
+  handlers.todoUpdateRequest:
+    properties:
+      completed:
+        type: boolean
+      creatorId:
+        type: integer
+      description:
+        maxLength: 1000
+        type: string
+      title:
+        maxLength: 255
+        minLength: 1
+        type: string
+    required:
+    - completed
+    - creatorId
+    - description
+    - title
+    type: object
+  handlers.userRequest:
+    properties:
+      email:
+        type: string
+      password:
+        maxLength: 255
+        minLength: 8
+        type: string
+      username:
+        maxLength: 20
+        minLength: 3
+        type: string
+    required:
+    - email
+    - password
+    - username
+    type: object
+info:
+  contact: {}
+  description: This is a sample API Server.
+  license:
+    name: MIT
+  title: Go Example API
+  version: "1.0"
+paths:
+  /todo:
+    post:
+      consumes:
+      - application/json
+      description: Create a new todo with the provided todo data.
+      parameters:
+      - description: Todo data
+        in: body
+        name: todo
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.todoCreateRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created todo
+          schema:
+            $ref: '#/definitions/db.Todo'
+        "400":
+          description: Bad request
+        "500":
+          description: Internal server error
+      summary: Create a new todo
+      tags:
+      - Todo
+  /todo/{id}:
+    delete:
+      description: Delete an existing todo.
+      parameters:
+      - description: Todo ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "204":
+          description: No content
+        "404":
+          description: Todo not found
+        "500":
+          description: Internal server error
+      summary: Delete a todo
+      tags:
+      - Todo
+    put:
+      consumes:
+      - application/json
+      description: Update an existing todo with the provided todo data.
+      parameters:
+      - description: Todo ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Todo data
+        in: body
+        name: todo
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.todoUpdateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Updated todo
+          schema:
+            $ref: '#/definitions/db.Todo'
+        "400":
+          description: Bad request
+        "404":
+          description: Todo not found
+        "500":
+          description: Internal server error
+      summary: Update a todo
+      tags:
+      - Todo
+  /todo/{id}/assign:
+    post:
+      consumes:
+      - application/json
+      description: Assign a user to a todo.
+      parameters:
+      - description: Todo ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: User data
+        in: body
+        name: todo
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.todoAssignRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created todo assignment
+        "400":
+          description: Bad request
+        "404":
+          description: Todo not found
+        "500":
+          description: Internal server error
+      summary: Assign a user to a todo
+      tags:
+      - Todo
+  /user:
+    get:
+      description: Get the list of all users.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of users
+          schema:
+            items:
+              $ref: '#/definitions/db.User'
+            type: array
+        "500":
+          description: Internal server error
+      summary: Get all users
+      tags:
+      - User
+    post:
+      consumes:
+      - application/json
+      description: Create a new user with the provided user data.
+      parameters:
+      - description: User data
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.userRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created user
+          schema:
+            $ref: '#/definitions/db.User'
+        "400":
+          description: Bad request
+        "500":
+          description: Internal server error
+      summary: Create a new user
+      tags:
+      - User
+  /user/{id}:
+    delete:
+      description: Delete an existing user with the provided user ID.
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "204":
+          description: No content
+        "404":
+          description: User not found
+        "500":
+          description: Internal server error
+      summary: Delete an existing user
+      tags:
+      - User
+    put:
+      consumes:
+      - application/json
+      description: Update an existing user with the provided user data.
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: User data
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.userRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Updated user
+          schema:
+            $ref: '#/definitions/db.User'
+        "400":
+          description: Bad request
+        "404":
+          description: User not found
+        "500":
+          description: Internal server error
+      summary: Update an existing user
+      tags:
+      - User
+swagger: "2.0"

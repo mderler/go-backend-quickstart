@@ -28,6 +28,18 @@ func NewUserHandler(queries *db.Queries) *UserHandler {
 	return userHandler
 }
 
+// createUser creates a new user.
+//
+// @Summary Create a new user
+// @Description Create a new user with the provided user data.
+// @Tags User
+// @Accept json
+// @Produce json
+// @Param user body userRequest true "User data"
+// @Success 201 {object} db.User "Created user"
+// @Failure 400 "Bad request"
+// @Failure 500 "Internal server error"
+// @Router /user [post]
 func (u *UserHandler) createUser(w http.ResponseWriter, r *http.Request) {
 	user := &userRequest{}
 
@@ -52,10 +64,23 @@ func (u *UserHandler) createUser(w http.ResponseWriter, r *http.Request) {
 	w.Write(resp)
 }
 
+// getUsers returns the list of all users.
+//
+// @Summary Get all users
+// @Description Get the list of all users.
+// @Tags User
+// @Produce json
+// @Success 200 {array} db.User "List of users"
+// @Failure 500 "Internal server error"
+// @Router /user [get]
 func (u *UserHandler) getUsers(w http.ResponseWriter, r *http.Request) {
 	users, err := u.queries.ListUsers(r.Context())
 	if err != nil {
 		writeInternalServerError(w, err)
+		return
+	}
+	if users == nil {
+		w.Write([]byte("[]"))
 		return
 	}
 
@@ -68,6 +93,20 @@ func (u *UserHandler) getUsers(w http.ResponseWriter, r *http.Request) {
 	w.Write(resp)
 }
 
+// updateUser updates an existing user.
+//
+// @Summary Update an existing user
+// @Description Update an existing user with the provided user data.
+// @Tags User
+// @Accept json
+// @Produce json
+// @Param id path int true "User ID"
+// @Param user body userRequest true "User data"
+// @Success 200 {object} db.User "Updated user"
+// @Failure 400 "Bad request"
+// @Failure 404 "User not found"
+// @Failure 500 "Internal server error"
+// @Router /user/{id} [put]
 func (u *UserHandler) updateUser(w http.ResponseWriter, r *http.Request) {
 	userIdParam := chi.URLParam(r, "id")
 	if userIdParam == "" {
@@ -113,6 +152,16 @@ func (u *UserHandler) updateUser(w http.ResponseWriter, r *http.Request) {
 	w.Write(resp)
 }
 
+// deleteUser deletes an existing user.
+//
+// @Summary Delete an existing user
+// @Description Delete an existing user with the provided user ID.
+// @Tags User
+// @Param id path int true "User ID"
+// @Success 204 "No content"
+// @Failure 404 "User not found"
+// @Failure 500 "Internal server error"
+// @Router /user/{id} [delete]
 func (u *UserHandler) deleteUser(w http.ResponseWriter, r *http.Request) {
 	userIdParam := chi.URLParam(r, "id")
 	if userIdParam == "" {
@@ -138,6 +187,19 @@ func (u *UserHandler) deleteUser(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusNoContent)
 }
+
+// getUserTodos returns the list of all todos of a user.
+//
+// @Summary Get all todos of a user
+// @Description Get the list of all todos of a user with the provided user ID.
+// @Tags User
+// @Produce json
+// @Param id path int true "User ID"
+// @Success 200 {array} db.Todo "List of todos"
+// @Failure 400 "Bad request"
+// @Failure 404 "User not found"
+// @Failure 500 "Internal server error"
+// @Router /user/{id}/todos [get]
 
 func (u *UserHandler) getUserTodos(w http.ResponseWriter, r *http.Request) {
 	userIdParam := chi.URLParam(r, "id")

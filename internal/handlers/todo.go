@@ -2,11 +2,12 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/mderler/simple-go-backend/internal/db"
 )
 
@@ -26,6 +27,18 @@ func NewTodoHandler(queries *db.Queries) *TodoHandler {
 	return todoHandler
 }
 
+// createTodo creates a new todo.
+//
+// @Summary Create a new todo
+// @Description Create a new todo with the provided todo data.
+// @Tags Todo
+// @Accept json
+// @Produce json
+// @Param todo body todoCreateRequest true "Todo data"
+// @Success 201 {object} db.Todo "Created todo"
+// @Failure 400 "Bad request"
+// @Failure 500 "Internal server error"
+// @Router /todo [post]
 func (t *TodoHandler) createTodo(w http.ResponseWriter, r *http.Request) {
 	todo := &todoCreateRequest{}
 
@@ -34,10 +47,9 @@ func (t *TodoHandler) createTodo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	params := db.CreateTodoParams{
-		Title: todo.Title,
-		Description: pgtype.Text{
-			String: todo.Description,
-		},
+		Title:       todo.Title,
+		Description: todo.Description,
+		CreatorID:   todo.CreatorID,
 	}
 	dbTodo, err := t.queries.CreateTodo(r.Context(), params)
 	if err != nil {
@@ -55,6 +67,20 @@ func (t *TodoHandler) createTodo(w http.ResponseWriter, r *http.Request) {
 	w.Write(resp)
 }
 
+// updateTodo updates an existing todo.
+//
+// @Summary Update a todo
+// @Description Update an existing todo with the provided todo data.
+// @Tags Todo
+// @Accept json
+// @Produce json
+// @Param id path int true "Todo ID"
+// @Param todo body todoUpdateRequest true "Todo data"
+// @Success 200 {object} db.Todo "Updated todo"
+// @Failure 400 "Bad request"
+// @Failure 404 "Todo not found"
+// @Failure 500 "Internal server error"
+// @Router /todo/{id} [put]
 func (t *TodoHandler) updateTodo(w http.ResponseWriter, r *http.Request) {
 	todoIdParam := chi.URLParam(r, "id")
 	if todoIdParam == "" {
@@ -75,14 +101,10 @@ func (t *TodoHandler) updateTodo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	params := db.UpdateTodoParams{
-		ID:    int32(todoId),
-		Title: todo.Title,
-		Description: pgtype.Text{
-			String: todo.Description,
-		},
-		Completed: pgtype.Bool{
-			Bool: todo.Completed,
-		},
+		ID:          int32(todoId),
+		Title:       todo.Title,
+		Description: todo.Description,
+		Completed:   todo.Completed,
 	}
 	dbTodo, err := t.queries.UpdateTodo(r.Context(), params)
 	if err != nil {
@@ -100,6 +122,16 @@ func (t *TodoHandler) updateTodo(w http.ResponseWriter, r *http.Request) {
 	w.Write(resp)
 }
 
+// deleteTodo deletes an existing todo.
+//
+// @Summary Delete a todo
+// @Description Delete an existing todo.
+// @Tags Todo
+// @Param id path int true "Todo ID"
+// @Success 204 "No content"
+// @Failure 404 "Todo not found"
+// @Failure 500 "Internal server error"
+// @Router /todo/{id} [delete]
 func (t *TodoHandler) deleteTodo(w http.ResponseWriter, r *http.Request) {
 	todoIdParam := chi.URLParam(r, "id")
 	if todoIdParam == "" {
@@ -126,6 +158,20 @@ func (t *TodoHandler) deleteTodo(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
+// assignTodo assigns a user to a todo.
+//
+// @Summary Assign a user to a todo
+// @Description Assign a user to a todo.
+// @Tags Todo
+// @Accept json
+// @Produce json
+// @Param id path int true "Todo ID"
+// @Param todo body todoAssignRequest true "User data"
+// @Success 201 "Created todo assignment"
+// @Failure 400 "Bad request"
+// @Failure 404 "Todo not found"
+// @Failure 500 "Internal server error"
+// @Router /todo/{id}/assign [post]
 func (t *TodoHandler) assignTodo(w http.ResponseWriter, r *http.Request) {
 	todoIdParam := chi.URLParam(r, "id")
 	if todoIdParam == "" {
@@ -151,6 +197,11 @@ func (t *TodoHandler) assignTodo(w http.ResponseWriter, r *http.Request) {
 	}
 	_, err = t.queries.AssignUserToTodo(r.Context(), params)
 	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr); pgErr.Code == "23503" {
+			writeInvalidTodoAssignRequestError(w, pgErr, params.TodoID, assign.UserID)
+			return
+		}
 		writeInternalServerError(w, err)
 		return
 	}

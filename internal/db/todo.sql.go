@@ -7,8 +7,7 @@ package db
 
 import (
 	"context"
-
-	"github.com/jackc/pgx/v5/pgtype"
+	"time"
 )
 
 const assignUserToTodo = `-- name: AssignUserToTodo :execrows
@@ -17,8 +16,8 @@ VALUES ($1, $2)
 `
 
 type AssignUserToTodoParams struct {
-	TodoID int32
-	UserID int32
+	TodoID int32 `json:"todo_id"`
+	UserID int32 `json:"user_id"`
 }
 
 func (q *Queries) AssignUserToTodo(ctx context.Context, arg AssignUserToTodoParams) (int64, error) {
@@ -32,13 +31,13 @@ func (q *Queries) AssignUserToTodo(ctx context.Context, arg AssignUserToTodoPara
 const createTodo = `-- name: CreateTodo :one
 INSERT INTO todo (title, description, creator_id)
 VALUES ($1, $2, $3)
-RETURNING id, creator_id, title, description, created_at, updated_at, completed
+RETURNING id, creator_id, title, description, completed, created_at, updated_at
 `
 
 type CreateTodoParams struct {
-	Title       string
-	Description pgtype.Text
-	CreatorID   int32
+	Title       string `json:"title"`
+	Description string `json:"description"`
+	CreatorID   int32  `json:"creator_id"`
 }
 
 func (q *Queries) CreateTodo(ctx context.Context, arg CreateTodoParams) (Todo, error) {
@@ -49,9 +48,9 @@ func (q *Queries) CreateTodo(ctx context.Context, arg CreateTodoParams) (Todo, e
 		&i.CreatorID,
 		&i.Title,
 		&i.Description,
+		&i.Completed,
 		&i.CreatedAt,
 		&i.UpdatedAt,
-		&i.Completed,
 	)
 	return i, err
 }
@@ -70,21 +69,21 @@ func (q *Queries) DeleteTodo(ctx context.Context, id int32) (int64, error) {
 }
 
 const getTodosOfUser = `-- name: GetTodosOfUser :many
-SELECT id, creator_id, title, description, created_at, updated_at, completed, todo_id, user_id FROM todo
+SELECT id, creator_id, title, description, completed, created_at, updated_at, todo_id, user_id FROM todo
 JOIN todo_user ON todo.id = todo_user.todo_id
 WHERE todo_user.user_id = $1
 `
 
 type GetTodosOfUserRow struct {
-	ID          int32
-	CreatorID   int32
-	Title       string
-	Description pgtype.Text
-	CreatedAt   pgtype.Timestamp
-	UpdatedAt   pgtype.Timestamp
-	Completed   pgtype.Bool
-	TodoID      int32
-	UserID      int32
+	ID          int32     `json:"id"`
+	CreatorID   int32     `json:"creator_id"`
+	Title       string    `json:"title"`
+	Description string    `json:"description"`
+	Completed   bool      `json:"completed"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
+	TodoID      int32     `json:"todo_id"`
+	UserID      int32     `json:"user_id"`
 }
 
 func (q *Queries) GetTodosOfUser(ctx context.Context, userID int32) ([]GetTodosOfUserRow, error) {
@@ -101,9 +100,9 @@ func (q *Queries) GetTodosOfUser(ctx context.Context, userID int32) ([]GetTodosO
 			&i.CreatorID,
 			&i.Title,
 			&i.Description,
+			&i.Completed,
 			&i.CreatedAt,
 			&i.UpdatedAt,
-			&i.Completed,
 			&i.TodoID,
 			&i.UserID,
 		); err != nil {
@@ -121,14 +120,14 @@ const updateTodo = `-- name: UpdateTodo :one
 UPDATE todo
 SET title = $1, description = $2, completed = $3
 WHERE id = $4
-RETURNING id, creator_id, title, description, created_at, updated_at, completed
+RETURNING id, creator_id, title, description, completed, created_at, updated_at
 `
 
 type UpdateTodoParams struct {
-	Title       string
-	Description pgtype.Text
-	Completed   pgtype.Bool
-	ID          int32
+	Title       string `json:"title"`
+	Description string `json:"description"`
+	Completed   bool   `json:"completed"`
+	ID          int32  `json:"id"`
 }
 
 func (q *Queries) UpdateTodo(ctx context.Context, arg UpdateTodoParams) (Todo, error) {
@@ -144,9 +143,9 @@ func (q *Queries) UpdateTodo(ctx context.Context, arg UpdateTodoParams) (Todo, e
 		&i.CreatorID,
 		&i.Title,
 		&i.Description,
+		&i.Completed,
 		&i.CreatedAt,
 		&i.UpdatedAt,
-		&i.Completed,
 	)
 	return i, err
 }

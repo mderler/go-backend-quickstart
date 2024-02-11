@@ -33,3 +33,6 @@ stop-postgres:
 
 sqlc-gen:
 	go run github.com/sqlc-dev/sqlc/cmd/sqlc@latest generate
+
+swag-init:
+	go run github.com/swaggo/swag/cmd/swag@latest init -g cmd/api/main.go
