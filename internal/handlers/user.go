@@ -2,9 +2,12 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
+	"strconv"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/jackc/pgx/v5"
 	"github.com/mderler/simple-go-backend/internal/db"
 	"github.com/mderler/simple-go-backend/internal/validation"
 )
@@ -29,7 +32,7 @@ func (u *UserHandler) createUser(w http.ResponseWriter, r *http.Request) {
 	user := &userRequest{}
 
 	if err := json.NewDecoder(r.Body).Decode(user); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		writeJsonDecodeError(w, err)
 		return
 	}
 
@@ -41,13 +44,13 @@ func (u *UserHandler) createUser(w http.ResponseWriter, r *http.Request) {
 	params := db.CreateUserParams(*user)
 	dbUser, err := u.queries.CreateUser(r.Context(), params)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		writeInternalServerError(w, err)
 		return
 	}
 
 	resp, err := json.Marshal(dbUser)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		writeInternalServerError(w, err)
 		return
 	}
 
@@ -58,13 +61,13 @@ func (u *UserHandler) createUser(w http.ResponseWriter, r *http.Request) {
 func (u *UserHandler) getUsers(w http.ResponseWriter, r *http.Request) {
 	users, err := u.queries.ListUsers(r.Context())
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		writeInternalServerError(w, err)
 		return
 	}
 
 	resp, err := json.Marshal(users)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		writeInternalServerError(w, err)
 		return
 	}
 
@@ -72,10 +75,22 @@ func (u *UserHandler) getUsers(w http.ResponseWriter, r *http.Request) {
 }
 
 func (u *UserHandler) updateUser(w http.ResponseWriter, r *http.Request) {
+	userIdParam := chi.URLParam(r, "id")
+	if userIdParam == "" {
+		writeUserNotFoundError(w, userIdParam)
+		return
+	}
+
+	userId, err := strconv.Atoi(userIdParam)
+	if err != nil {
+		writeInvalidUserIdError(w, userIdParam)
+		return
+	}
+
 	user := &userRequest{}
 
 	if err := json.NewDecoder(r.Body).Decode(user); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		writeJsonDecodeError(w, err)
 		return
 	}
 
@@ -85,7 +100,7 @@ func (u *UserHandler) updateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	params := db.UpdateUserParams{
-		ID:       1,
+		ID:       int32(userId),
 		Username: user.Username,
 		Email:    user.Email,
 		Password: user.Password,
@@ -93,13 +108,17 @@ func (u *UserHandler) updateUser(w http.ResponseWriter, r *http.Request) {
 
 	dbUser, err := u.queries.UpdateUser(r.Context(), params)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		if errors.Is(err, pgx.ErrNoRows) {
+			writeUserNotFoundError(w, userIdParam)
+			return
+		}
+		writeInternalServerError(w, err)
 		return
 	}
 
 	resp, err := json.Marshal(dbUser)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		writeInternalServerError(w, err)
 		return
 	}
 
@@ -107,5 +126,27 @@ func (u *UserHandler) updateUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (u *UserHandler) deleteUser(w http.ResponseWriter, r *http.Request) {
-	// ...
+	userIdParam := chi.URLParam(r, "id")
+	if userIdParam == "" {
+		writeUserNotFoundError(w, userIdParam)
+		return
+	}
+
+	userID, err := strconv.Atoi(userIdParam)
+	if err != nil {
+		writeInvalidUserIdError(w, userIdParam)
+		return
+	}
+
+	affectedRows, err := u.queries.DeleteUser(r.Context(), int32(userID))
+	if err != nil {
+		writeInternalServerError(w, err)
+		return
+	}
+	if affectedRows == 0 {
+		writeUserNotFoundError(w, userIdParam)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
 }
