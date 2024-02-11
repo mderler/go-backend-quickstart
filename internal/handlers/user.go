@@ -9,7 +9,6 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/jackc/pgx/v5"
 	"github.com/mderler/simple-go-backend/internal/db"
-	"github.com/mderler/simple-go-backend/internal/validation"
 )
 
 type UserHandler struct {
@@ -24,6 +23,7 @@ func NewUserHandler(queries *db.Queries) *UserHandler {
 	userHandler.Get("/", userHandler.getUsers)
 	userHandler.Put("/{id}", userHandler.updateUser)
 	userHandler.Delete("/{id}", userHandler.deleteUser)
+	userHandler.Get("/{id}/todos", userHandler.getUserTodos)
 
 	return userHandler
 }
@@ -31,13 +31,7 @@ func NewUserHandler(queries *db.Queries) *UserHandler {
 func (u *UserHandler) createUser(w http.ResponseWriter, r *http.Request) {
 	user := &userRequest{}
 
-	if err := json.NewDecoder(r.Body).Decode(user); err != nil {
-		writeJsonDecodeError(w, err)
-		return
-	}
-
-	if msg := validation.Validate(user); msg != nil {
-		http.Error(w, string(msg), http.StatusBadRequest)
+	if err := decodeAndValidate(w, r, user); err != nil {
 		return
 	}
 
@@ -89,13 +83,7 @@ func (u *UserHandler) updateUser(w http.ResponseWriter, r *http.Request) {
 
 	user := &userRequest{}
 
-	if err := json.NewDecoder(r.Body).Decode(user); err != nil {
-		writeJsonDecodeError(w, err)
-		return
-	}
-
-	if msg := validation.Validate(user); msg != nil {
-		http.Error(w, string(msg), http.StatusBadRequest)
+	if err := decodeAndValidate(w, r, user); err != nil {
 		return
 	}
 
@@ -149,4 +137,32 @@ func (u *UserHandler) deleteUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusNoContent)
+}
+
+func (u *UserHandler) getUserTodos(w http.ResponseWriter, r *http.Request) {
+	userIdParam := chi.URLParam(r, "id")
+	if userIdParam == "" {
+		writeUserNotFoundError(w, userIdParam)
+		return
+	}
+
+	userId, err := strconv.Atoi(userIdParam)
+	if err != nil {
+		writeInvalidUserIdError(w, userIdParam)
+		return
+	}
+
+	todos, err := u.queries.GetTodosOfUser(r.Context(), int32(userId))
+	if err != nil {
+		writeInternalServerError(w, err)
+		return
+	}
+
+	resp, err := json.Marshal(todos)
+	if err != nil {
+		writeInternalServerError(w, err)
+		return
+	}
+
+	w.Write(resp)
 }

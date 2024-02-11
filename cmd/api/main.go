@@ -16,7 +16,7 @@ import (
 	"go.uber.org/fx"
 )
 
-func newChiServer(lc fx.Lifecycle, userHandler *handlers.UserHandler) *http.Server {
+func newChiServer(lc fx.Lifecycle, userHandler *handlers.UserHandler, todoHandler *handlers.TodoHandler) *http.Server {
 	r := chi.NewRouter()
 
 	r.Use(middleware.AllowContentType("application/json"))
@@ -25,6 +25,7 @@ func newChiServer(lc fx.Lifecycle, userHandler *handlers.UserHandler) *http.Serv
 
 	r.Route("/v1", func(r chi.Router) {
 		r.Mount("/user", userHandler)
+		r.Mount("/todo", todoHandler)
 	})
 
 	srv := &http.Server{Addr: ":3000", Handler: r}
@@ -57,7 +58,7 @@ func main() {
 	validation.Init()
 
 	fx.New(
-		fx.Provide(dbwrapper.NewPostgresQueries, handlers.NewUserHandler),
+		fx.Provide(dbwrapper.NewPostgresQueries, handlers.NewUserHandler, handlers.NewTodoHandler),
 		fx.Invoke(newChiServer),
 	).Run()
 }

@@ -29,3 +29,15 @@ func writeInvalidUserIdError(w http.ResponseWriter, id string) {
 	log.Println("Invalid user id:", id)
 	http.Error(w, msg, http.StatusBadRequest)
 }
+
+func writeTodoNotFoundError(w http.ResponseWriter, id string) {
+	msg := fmt.Sprintf(`{"error":"todo-not-found","title":"Todo not found","detail":"Todo with id %s not found"}`, id)
+	log.Println("Todo not found:", id)
+	http.Error(w, msg, http.StatusNotFound)
+}
+
+func writeInvalidTodoIdError(w http.ResponseWriter, id string) {
+	msg := fmt.Sprintf(`{"error":"invalid-todo-id","title":"Invalid todo id","detail":"The todo id %s is not valid"}`, id)
+	log.Println("Invalid todo id:", id)
+	http.Error(w, msg, http.StatusBadRequest)
+}
