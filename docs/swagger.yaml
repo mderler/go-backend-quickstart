@@ -423,6 +423,13 @@ paths:
         name: id
         required: true
         type: integer
+      - description: Type of todos to get
+        enum:
+        - assigned
+        - created
+        in: query
+        name: type
+        type: string
       produces:
       - application/json
       responses:

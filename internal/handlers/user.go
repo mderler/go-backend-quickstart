@@ -184,6 +184,7 @@ func (u *UserHandler) deleteUser(w http.ResponseWriter, r *http.Request) {
 // @Tags User
 // @Produce json
 // @Param id path int true "User ID"
+// @Param type query string false "Type of todos to get" Enums(assigned, created)
 // @Success 200 {array} db.Todo "List of todos"
 // @Failure 400 {object} ErrorResponse "Bad request"
 // @Failure 404 {object} ErrorResponse "User not found"
@@ -202,7 +203,21 @@ func (u *UserHandler) getUserTodos(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	todos, err := u.queries.GetTodosOfUser(r.Context(), int32(userId))
+	var todos []db.Todo
+
+	q := r.URL.Query().Get("type")
+	switch q {
+	case "assigned":
+		todos, err = u.queries.GetAssignedTodosOfUser(r.Context(), int32(userId))
+	case "created":
+		todos, err = u.queries.GetCreatedTodosOfUser(r.Context(), int32(userId))
+	case "":
+		todos, err = u.queries.GetAllTodosOfUser(r.Context(), int32(userId))
+	default:
+		writeInvalidQueryError(w, q, []string{"assigned", "created", ""})
+		return
+	}
+
 	if err != nil {
 		writeInternalServerError(w, err)
 		return

@@ -463,6 +463,16 @@ const docTemplate = `{
                         "name": "id",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "enum": [
+                            "assigned",
+                            "created"
+                        ],
+                        "type": "string",
+                        "description": "Type of todos to get",
+                        "name": "type",
+                        "in": "query"
                     }
                 ],
                 "responses": {

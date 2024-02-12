@@ -67,14 +67,81 @@ func (q *Queries) DeleteTodo(ctx context.Context, id int32) (int64, error) {
 	return result.RowsAffected(), nil
 }
 
-const getTodosOfUser = `-- name: GetTodosOfUser :many
-SELECT todo.id, creator_id, title, description, completed, created_at, updated_at FROM todo
+const getAllTodosOfUser = `-- name: GetAllTodosOfUser :many
+SELECT todo.id, todo.creator_id, todo.title, todo.description, todo.completed, todo.created_at, todo.updated_at FROM todo
+LEFT JOIN todo_user ON todo.id = todo_user.todo_id
+WHERE todo_user.user_id = $1 OR todo.creator_id = $1
+`
+
+func (q *Queries) GetAllTodosOfUser(ctx context.Context, userID int32) ([]Todo, error) {
+	rows, err := q.db.Query(ctx, getAllTodosOfUser, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Todo{}
+	for rows.Next() {
+		var i Todo
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatorID,
+			&i.Title,
+			&i.Description,
+			&i.Completed,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getAssignedTodosOfUser = `-- name: GetAssignedTodosOfUser :many
+SELECT todo.id, todo.creator_id, todo.title, todo.description, todo.completed, todo.created_at, todo.updated_at FROM todo
 JOIN todo_user ON todo.id = todo_user.todo_id
 WHERE todo_user.user_id = $1
 `
 
-func (q *Queries) GetTodosOfUser(ctx context.Context, userID int32) ([]Todo, error) {
-	rows, err := q.db.Query(ctx, getTodosOfUser, userID)
+func (q *Queries) GetAssignedTodosOfUser(ctx context.Context, userID int32) ([]Todo, error) {
+	rows, err := q.db.Query(ctx, getAssignedTodosOfUser, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Todo{}
+	for rows.Next() {
+		var i Todo
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatorID,
+			&i.Title,
+			&i.Description,
+			&i.Completed,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getCreatedTodosOfUser = `-- name: GetCreatedTodosOfUser :many
+SELECT id, creator_id, title, description, completed, created_at, updated_at FROM todo
+WHERE todo.creator_id = $1
+`
+
+func (q *Queries) GetCreatedTodosOfUser(ctx context.Context, creatorID int32) ([]Todo, error) {
+	rows, err := q.db.Query(ctx, getCreatedTodosOfUser, creatorID)
 	if err != nil {
 		return nil, err
 	}

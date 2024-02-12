@@ -75,3 +75,9 @@ func writeInvalidTodoAssignRequestError(w http.ResponseWriter, err *pgconn.PgErr
 	}
 	writeInternalServerError(w, err)
 }
+
+func writeInvalidQueryError(w http.ResponseWriter, actual string, options []string) {
+	log.Printf("Invalid query: actual=%s options=%v\n", actual, options)
+	msg := fmt.Sprintf(`{"type":"invalid-query","title":"Invalid query","detail":"The query parameter %s is not valid. Valid options are %v"}`, actual, options)
+	http.Error(w, msg, http.StatusBadRequest)
+}
