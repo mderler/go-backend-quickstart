@@ -31,7 +31,7 @@ func Validate(s interface{}) []byte {
 		message := fmt.Sprintf("The %s %s", fieldName, getErrorMessage(tag))
 		invalidParams[fieldName] = map[string]interface{}{"detail": message, "tag": tag}
 	}
-	errorResponse["invalid-params"] = invalidParams
+	errorResponse["invalid_params"] = invalidParams
 
 	msg, err := json.Marshal(errorResponse)
 	if err != nil {

@@ -28,14 +28,37 @@ definitions:
       username:
         type: string
     type: object
-  handlers.todoAssignRequest:
+  handlers.ErrorResponse:
+    properties:
+      detail:
+        type: string
+      title:
+        type: string
+      type:
+        type: string
+    type: object
+  handlers.InternalErrorResponse:
+    properties:
+      title:
+        type: string
+      type:
+        type: string
+    type: object
+  handlers.InvalidParam:
+    properties:
+      detail:
+        type: string
+      tag:
+        type: string
+    type: object
+  handlers.TodoAssignRequest:
     properties:
       userId:
         type: integer
     required:
     - userId
     type: object
-  handlers.todoCreateRequest:
+  handlers.TodoCreateRequest:
     properties:
       creatorId:
         type: integer
@@ -51,7 +74,7 @@ definitions:
     - description
     - title
     type: object
-  handlers.todoUpdateRequest:
+  handlers.TodoUpdateRequest:
     properties:
       completed:
         type: boolean
@@ -70,7 +93,7 @@ definitions:
     - description
     - title
     type: object
-  handlers.userRequest:
+  handlers.UserRequest:
     properties:
       email:
         type: string
@@ -86,6 +109,19 @@ definitions:
     - email
     - password
     - username
+    type: object
+  handlers.ValidationErrorResponse:
+    properties:
+      detail:
+        type: string
+      invalid-params:
+        additionalProperties:
+          $ref: '#/definitions/handlers.InvalidParam'
+        type: object
+      title:
+        type: string
+      type:
+        type: string
     type: object
 info:
   contact: {}
@@ -106,7 +142,7 @@ paths:
         name: todo
         required: true
         schema:
-          $ref: '#/definitions/handlers.todoCreateRequest'
+          $ref: '#/definitions/handlers.TodoCreateRequest'
       produces:
       - application/json
       responses:
@@ -116,8 +152,16 @@ paths:
             $ref: '#/definitions/db.Todo'
         "400":
           description: Bad request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "422":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/handlers.ValidationErrorResponse'
         "500":
           description: Internal server error
+          schema:
+            $ref: '#/definitions/handlers.InternalErrorResponse'
       summary: Create a new todo
       tags:
       - Todo
@@ -133,10 +177,18 @@ paths:
       responses:
         "204":
           description: No content
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
         "404":
           description: Todo not found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
         "500":
           description: Internal server error
+          schema:
+            $ref: '#/definitions/handlers.InternalErrorResponse'
       summary: Delete a todo
       tags:
       - Todo
@@ -155,7 +207,7 @@ paths:
         name: todo
         required: true
         schema:
-          $ref: '#/definitions/handlers.todoUpdateRequest'
+          $ref: '#/definitions/handlers.TodoUpdateRequest'
       produces:
       - application/json
       responses:
@@ -165,10 +217,20 @@ paths:
             $ref: '#/definitions/db.Todo'
         "400":
           description: Bad request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
         "404":
           description: Todo not found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "422":
+          description: Todo not found
+          schema:
+            $ref: '#/definitions/handlers.ValidationErrorResponse'
         "500":
           description: Internal server error
+          schema:
+            $ref: '#/definitions/handlers.InternalErrorResponse'
       summary: Update a todo
       tags:
       - Todo
@@ -188,7 +250,7 @@ paths:
         name: todo
         required: true
         schema:
-          $ref: '#/definitions/handlers.todoAssignRequest'
+          $ref: '#/definitions/handlers.TodoAssignRequest'
       produces:
       - application/json
       responses:
@@ -196,10 +258,20 @@ paths:
           description: Created todo assignment
         "400":
           description: Bad request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
         "404":
           description: Todo not found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "422":
+          description: Validation error
+          schema:
+            $ref: '#/definitions/handlers.ValidationErrorResponse'
         "500":
           description: Internal server error
+          schema:
+            $ref: '#/definitions/handlers.InternalErrorResponse'
       summary: Assign a user to a todo
       tags:
       - Todo
@@ -217,6 +289,8 @@ paths:
             type: array
         "500":
           description: Internal server error
+          schema:
+            $ref: '#/definitions/handlers.InternalErrorResponse'
       summary: Get all users
       tags:
       - User
@@ -230,7 +304,7 @@ paths:
         name: user
         required: true
         schema:
-          $ref: '#/definitions/handlers.userRequest'
+          $ref: '#/definitions/handlers.UserRequest'
       produces:
       - application/json
       responses:
@@ -240,8 +314,16 @@ paths:
             $ref: '#/definitions/db.User'
         "400":
           description: Bad request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "422":
+          description: Validation error
+          schema:
+            $ref: '#/definitions/handlers.ValidationErrorResponse'
         "500":
           description: Internal server error
+          schema:
+            $ref: '#/definitions/handlers.InternalErrorResponse'
       summary: Create a new user
       tags:
       - User
@@ -257,10 +339,18 @@ paths:
       responses:
         "204":
           description: No content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
         "404":
           description: User not found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
         "500":
           description: Internal server error
+          schema:
+            $ref: '#/definitions/handlers.InternalErrorResponse'
       summary: Delete an existing user
       tags:
       - User
@@ -279,7 +369,7 @@ paths:
         name: user
         required: true
         schema:
-          $ref: '#/definitions/handlers.userRequest'
+          $ref: '#/definitions/handlers.UserRequest'
       produces:
       - application/json
       responses:
@@ -289,10 +379,20 @@ paths:
             $ref: '#/definitions/db.User'
         "400":
           description: Bad request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
         "404":
           description: User not found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "422":
+          description: Validation error
+          schema:
+            $ref: '#/definitions/handlers.ValidationErrorResponse'
         "500":
           description: Internal server error
+          schema:
+            $ref: '#/definitions/handlers.InternalErrorResponse'
       summary: Update an existing user
       tags:
       - User
@@ -316,10 +416,16 @@ paths:
             type: array
         "400":
           description: Bad request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
         "404":
           description: User not found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
         "500":
           description: Internal server error
+          schema:
+            $ref: '#/definitions/handlers.InternalErrorResponse'
       summary: Get all todos of a user
       tags:
       - User

@@ -27,20 +27,19 @@ func NewTodoHandler(queries *db.Queries) *TodoHandler {
 	return todoHandler
 }
 
-// createTodo creates a new todo.
-//
 // @Summary Create a new todo
 // @Description Create a new todo with the provided todo data.
 // @Tags Todo
 // @Accept json
 // @Produce json
-// @Param todo body todoCreateRequest true "Todo data"
+// @Param todo body TodoCreateRequest true "Todo data"
 // @Success 201 {object} db.Todo "Created todo"
-// @Failure 400 "Bad request"
-// @Failure 500 "Internal server error"
+// @Failure 400 {object} ErrorResponse "Bad request"
+// @Failure 422 {object} ValidationErrorResponse "Bad request"
+// @Failure 500 {object} InternalErrorResponse "Internal server error"
 // @Router /todo [post]
 func (t *TodoHandler) createTodo(w http.ResponseWriter, r *http.Request) {
-	todo := &todoCreateRequest{}
+	todo := &TodoCreateRequest{}
 
 	if err := decodeAndValidate(w, r, todo); err != nil {
 		return
@@ -67,19 +66,18 @@ func (t *TodoHandler) createTodo(w http.ResponseWriter, r *http.Request) {
 	w.Write(resp)
 }
 
-// updateTodo updates an existing todo.
-//
 // @Summary Update a todo
 // @Description Update an existing todo with the provided todo data.
 // @Tags Todo
 // @Accept json
 // @Produce json
 // @Param id path int true "Todo ID"
-// @Param todo body todoUpdateRequest true "Todo data"
+// @Param todo body TodoUpdateRequest true "Todo data"
 // @Success 200 {object} db.Todo "Updated todo"
-// @Failure 400 "Bad request"
-// @Failure 404 "Todo not found"
-// @Failure 500 "Internal server error"
+// @Failure 400 {object} ErrorResponse "Bad request"
+// @Failure 404 {object} ErrorResponse "Todo not found"
+// @Failure 422 {object} ValidationErrorResponse "Validation error"
+// @Failure 500 {object} InternalErrorResponse "Internal server error"
 // @Router /todo/{id} [put]
 func (t *TodoHandler) updateTodo(w http.ResponseWriter, r *http.Request) {
 	todoIdParam := chi.URLParam(r, "id")
@@ -94,7 +92,7 @@ func (t *TodoHandler) updateTodo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	todo := &todoUpdateRequest{}
+	todo := &TodoUpdateRequest{}
 
 	if err := decodeAndValidate(w, r, todo); err != nil {
 		return
@@ -122,15 +120,14 @@ func (t *TodoHandler) updateTodo(w http.ResponseWriter, r *http.Request) {
 	w.Write(resp)
 }
 
-// deleteTodo deletes an existing todo.
-//
 // @Summary Delete a todo
 // @Description Delete an existing todo.
 // @Tags Todo
 // @Param id path int true "Todo ID"
 // @Success 204 "No content"
-// @Failure 404 "Todo not found"
-// @Failure 500 "Internal server error"
+// @Failure 400 {object} ErrorResponse "Bad request"
+// @Failure 404 {object} ErrorResponse "Todo not found"
+// @Failure 500 {object} InternalErrorResponse "Internal server error"
 // @Router /todo/{id} [delete]
 func (t *TodoHandler) deleteTodo(w http.ResponseWriter, r *http.Request) {
 	todoIdParam := chi.URLParam(r, "id")
@@ -158,19 +155,18 @@ func (t *TodoHandler) deleteTodo(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-// assignTodo assigns a user to a todo.
-//
 // @Summary Assign a user to a todo
 // @Description Assign a user to a todo.
 // @Tags Todo
 // @Accept json
 // @Produce json
 // @Param id path int true "Todo ID"
-// @Param todo body todoAssignRequest true "User data"
+// @Param todo body TodoAssignRequest true "User data"
 // @Success 201 "Created todo assignment"
-// @Failure 400 "Bad request"
-// @Failure 404 "Todo not found"
-// @Failure 500 "Internal server error"
+// @Failure 400 {object} ErrorResponse "Bad request"
+// @Failure 404 {object} ErrorResponse "Todo or User not found"
+// @Failure 422 {object} ValidationErrorResponse "Validation error"
+// @Failure 500 {object} InternalErrorResponse "Internal server error"
 // @Router /todo/{id}/assign [post]
 func (t *TodoHandler) assignTodo(w http.ResponseWriter, r *http.Request) {
 	todoIdParam := chi.URLParam(r, "id")
@@ -185,7 +181,7 @@ func (t *TodoHandler) assignTodo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	assign := &todoAssignRequest{}
+	assign := &TodoAssignRequest{}
 
 	if err := decodeAndValidate(w, r, assign); err != nil {
 		return

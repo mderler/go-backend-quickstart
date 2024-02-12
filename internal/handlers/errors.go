@@ -8,10 +8,24 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 )
 
+type InternalErrorResponse struct {
+	Type  string `json:"type"`
+	Title string `json:"title"`
+}
+
 type ErrorResponse struct {
-	Type   string `json:"type"`
-	Title  string `json:"title"`
+	*InternalErrorResponse
 	Detail string `json:"detail"`
+}
+
+type ValidationErrorResponse struct {
+	*ErrorResponse
+	InvalidParams map[string]InvalidParam `json:"invalid_params"`
+}
+
+type InvalidParam struct {
+	Detail string `json:"detail"`
+	Tag    string `json:"tag"`
 }
 
 func writeJsonDecodeError(w http.ResponseWriter, err error) {

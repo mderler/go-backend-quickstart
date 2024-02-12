@@ -38,7 +38,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handlers.todoCreateRequest"
+                            "$ref": "#/definitions/handlers.TodoCreateRequest"
                         }
                     }
                 ],
@@ -50,10 +50,22 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Bad request"
+                        "description": "Bad request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "422": {
+                        "description": "Bad request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ValidationErrorResponse"
+                        }
                     },
                     "500": {
-                        "description": "Internal server error"
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.InternalErrorResponse"
+                        }
                     }
                 }
             }
@@ -85,7 +97,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handlers.todoUpdateRequest"
+                            "$ref": "#/definitions/handlers.TodoUpdateRequest"
                         }
                     }
                 ],
@@ -97,13 +109,28 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Bad request"
+                        "description": "Bad request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
                     },
                     "404": {
-                        "description": "Todo not found"
+                        "description": "Todo not found",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "422": {
+                        "description": "Todo not found",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ValidationErrorResponse"
+                        }
                     },
                     "500": {
-                        "description": "Internal server error"
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.InternalErrorResponse"
+                        }
                     }
                 }
             },
@@ -126,11 +153,23 @@ const docTemplate = `{
                     "204": {
                         "description": "No content"
                     },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
                     "404": {
-                        "description": "Todo not found"
+                        "description": "Todo not found",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
                     },
                     "500": {
-                        "description": "Internal server error"
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.InternalErrorResponse"
+                        }
                     }
                 }
             }
@@ -162,7 +201,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handlers.todoAssignRequest"
+                            "$ref": "#/definitions/handlers.TodoAssignRequest"
                         }
                     }
                 ],
@@ -171,13 +210,28 @@ const docTemplate = `{
                         "description": "Created todo assignment"
                     },
                     "400": {
-                        "description": "Bad request"
+                        "description": "Bad request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
                     },
                     "404": {
-                        "description": "Todo not found"
+                        "description": "Todo not found",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ValidationErrorResponse"
+                        }
                     },
                     "500": {
-                        "description": "Internal server error"
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.InternalErrorResponse"
+                        }
                     }
                 }
             }
@@ -203,7 +257,10 @@ const docTemplate = `{
                         }
                     },
                     "500": {
-                        "description": "Internal server error"
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.InternalErrorResponse"
+                        }
                     }
                 }
             },
@@ -226,7 +283,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handlers.userRequest"
+                            "$ref": "#/definitions/handlers.UserRequest"
                         }
                     }
                 ],
@@ -238,10 +295,22 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Bad request"
+                        "description": "Bad request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ValidationErrorResponse"
+                        }
                     },
                     "500": {
-                        "description": "Internal server error"
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.InternalErrorResponse"
+                        }
                     }
                 }
             }
@@ -273,7 +342,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handlers.userRequest"
+                            "$ref": "#/definitions/handlers.UserRequest"
                         }
                     }
                 ],
@@ -285,13 +354,28 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Bad request"
+                        "description": "Bad request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
                     },
                     "404": {
-                        "description": "User not found"
+                        "description": "User not found",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ValidationErrorResponse"
+                        }
                     },
                     "500": {
-                        "description": "Internal server error"
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.InternalErrorResponse"
+                        }
                     }
                 }
             },
@@ -314,11 +398,23 @@ const docTemplate = `{
                     "204": {
                         "description": "No content"
                     },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
                     "404": {
-                        "description": "User not found"
+                        "description": "User not found",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
                     },
                     "500": {
-                        "description": "Internal server error"
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.InternalErrorResponse"
+                        }
                     }
                 }
             }
@@ -353,13 +449,22 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Bad request"
+                        "description": "Bad request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
                     },
                     "404": {
-                        "description": "User not found"
+                        "description": "User not found",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
                     },
                     "500": {
-                        "description": "Internal server error"
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.InternalErrorResponse"
+                        }
                     }
                 }
             }
@@ -409,7 +514,43 @@ const docTemplate = `{
                 }
             }
         },
-        "handlers.todoAssignRequest": {
+        "handlers.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "detail": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "handlers.InternalErrorResponse": {
+            "type": "object",
+            "properties": {
+                "title": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "handlers.InvalidParam": {
+            "type": "object",
+            "properties": {
+                "detail": {
+                    "type": "string"
+                },
+                "tag": {
+                    "type": "string"
+                }
+            }
+        },
+        "handlers.TodoAssignRequest": {
             "type": "object",
             "required": [
                 "userId"
@@ -420,7 +561,7 @@ const docTemplate = `{
                 }
             }
         },
-        "handlers.todoCreateRequest": {
+        "handlers.TodoCreateRequest": {
             "type": "object",
             "required": [
                 "creatorId",
@@ -442,7 +583,7 @@ const docTemplate = `{
                 }
             }
         },
-        "handlers.todoUpdateRequest": {
+        "handlers.TodoUpdateRequest": {
             "type": "object",
             "required": [
                 "completed",
@@ -468,7 +609,7 @@ const docTemplate = `{
                 }
             }
         },
-        "handlers.userRequest": {
+        "handlers.UserRequest": {
             "type": "object",
             "required": [
                 "email",
@@ -488,6 +629,26 @@ const docTemplate = `{
                     "type": "string",
                     "maxLength": 20,
                     "minLength": 3
+                }
+            }
+        },
+        "handlers.ValidationErrorResponse": {
+            "type": "object",
+            "properties": {
+                "detail": {
+                    "type": "string"
+                },
+                "invalid-params": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/handlers.InvalidParam"
+                    }
+                },
+                "title": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
                 }
             }
         }
