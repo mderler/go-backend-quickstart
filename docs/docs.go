@@ -248,6 +248,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/handlers.ErrorResponse"
                         }
                     },
+                    "409": {
+                        "description": "Duplicate assignment",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
                     "422": {
                         "description": "Validation error",
                         "schema": {
@@ -573,7 +579,8 @@ const docTemplate = `{
                 "invalid-user-id",
                 "todo-not-found",
                 "invalid-todo-id",
-                "invalid-query"
+                "invalid-query",
+                "todo-assign-error"
             ],
             "x-enum-varnames": [
                 "JSONDecodeError",
@@ -581,7 +588,8 @@ const docTemplate = `{
                 "InvalidUserIdError",
                 "TodoNotFoundError",
                 "InvalidTodoIdError",
-                "InvalidQueryError"
+                "InvalidQueryError",
+                "TodoAssignError"
             ]
         },
         "handlers.InternalErrorResponse": {
@@ -592,14 +600,16 @@ const docTemplate = `{
                 },
                 "type": {
                     "type": "string",
-                    "example": "internal-server-error"
+                    "enum": [
+                        "internal-server-error"
+                    ]
                 }
             }
         },
         "handlers.InvalidParam": {
             "type": "object",
             "properties": {
-                "detail": {
+                "message": {
                     "type": "string"
                 },
                 "tag": {
@@ -700,9 +710,6 @@ const docTemplate = `{
                     "additionalProperties": {
                         "$ref": "#/definitions/handlers.InvalidParam"
                     }
-                },
-                "title": {
-                    "type": "string"
                 },
                 "type": {
                     "type": "string",

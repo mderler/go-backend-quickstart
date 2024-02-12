@@ -45,6 +45,7 @@ definitions:
     - todo-not-found
     - invalid-todo-id
     - invalid-query
+    - todo-assign-error
     type: string
     x-enum-varnames:
     - JSONDecodeError
@@ -53,17 +54,19 @@ definitions:
     - TodoNotFoundError
     - InvalidTodoIdError
     - InvalidQueryError
+    - TodoAssignError
   handlers.InternalErrorResponse:
     properties:
       title:
         type: string
       type:
-        example: internal-server-error
+        enum:
+        - internal-server-error
         type: string
     type: object
   handlers.InvalidParam:
     properties:
-      detail:
+      message:
         type: string
       tag:
         type: string
@@ -135,8 +138,6 @@ definitions:
         additionalProperties:
           $ref: '#/definitions/handlers.InvalidParam'
         type: object
-      title:
-        type: string
       type:
         enum:
         - validation-error
@@ -299,6 +300,10 @@ paths:
             $ref: '#/definitions/handlers.ErrorResponse'
         "404":
           description: Todo or User not found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "409":
+          description: Duplicate assignment
           schema:
             $ref: '#/definitions/handlers.ErrorResponse'
         "422":
