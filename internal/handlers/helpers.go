@@ -2,22 +2,29 @@ package handlers
 
 import (
 	"encoding/json"
-	"errors"
+	"log"
 	"net/http"
-
-	"github.com/mderler/simple-go-backend/internal/validation"
 )
 
-func decodeAndValidate(w http.ResponseWriter, r *http.Request, v interface{}) error {
+func decodeAndValidate(w http.ResponseWriter, r *http.Request, v interface{}) bool {
 	if err := json.NewDecoder(r.Body).Decode(v); err != nil {
-		writeJsonDecodeError(w, err)
-		return err
+		WriteJsonDecodeError(w, err)
+		return false
 	}
 
-	if msg := validation.Validate(v); msg != nil {
-		http.Error(w, string(msg), http.StatusBadRequest)
-		return errors.New("validation error")
+	if msg := Validate(v); msg != nil {
+		writeJson(w, msg, http.StatusUnprocessableEntity)
+		return false
 	}
 
-	return nil
+	return true
+}
+
+func writeJson(w http.ResponseWriter, v interface{}, statusCode int) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(statusCode)
+	if err := json.NewEncoder(w).Encode(v); err != nil {
+		log.Println("Error encoding JSON:", err)
+		w.Write([]byte(`{"type":"internal-server-error","title":"Something went wrong"}`))
+	}
 }

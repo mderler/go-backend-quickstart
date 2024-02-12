@@ -35,13 +35,30 @@ definitions:
       title:
         type: string
       type:
-        type: string
+        $ref: '#/definitions/handlers.ErrorType'
     type: object
+  handlers.ErrorType:
+    enum:
+    - json-decode-error
+    - user-not-found
+    - invalid-user-id
+    - todo-not-found
+    - invalid-todo-id
+    - invalid-query
+    type: string
+    x-enum-varnames:
+    - JSONDecodeError
+    - UserNotFoundError
+    - InvalidUserIdError
+    - TodoNotFoundError
+    - InvalidTodoIdError
+    - InvalidQueryError
   handlers.InternalErrorResponse:
     properties:
       title:
         type: string
       type:
+        example: internal-server-error
         type: string
     type: object
   handlers.InvalidParam:
@@ -121,6 +138,8 @@ definitions:
       title:
         type: string
       type:
+        enum:
+        - validation-error
         type: string
     type: object
 info:

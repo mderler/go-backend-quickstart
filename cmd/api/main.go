@@ -12,7 +12,6 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/mderler/simple-go-backend/internal/dbwrapper"
 	"github.com/mderler/simple-go-backend/internal/handlers"
-	"github.com/mderler/simple-go-backend/internal/validation"
 	"go.uber.org/fx"
 
 	_ "github.com/mderler/simple-go-backend/docs"
@@ -66,8 +65,6 @@ func main() {
 	if err := godotenv.Load(); err != nil {
 		log.Fatal("Error loading .env file")
 	}
-
-	validation.Init()
 
 	fx.New(
 		fx.Provide(dbwrapper.NewPostgresQueries, handlers.NewUserHandler, handlers.NewTodoHandler),

@@ -561,9 +561,28 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "type": {
-                    "type": "string"
+                    "$ref": "#/definitions/handlers.ErrorType"
                 }
             }
+        },
+        "handlers.ErrorType": {
+            "type": "string",
+            "enum": [
+                "json-decode-error",
+                "user-not-found",
+                "invalid-user-id",
+                "todo-not-found",
+                "invalid-todo-id",
+                "invalid-query"
+            ],
+            "x-enum-varnames": [
+                "JSONDecodeError",
+                "UserNotFoundError",
+                "InvalidUserIdError",
+                "TodoNotFoundError",
+                "InvalidTodoIdError",
+                "InvalidQueryError"
+            ]
         },
         "handlers.InternalErrorResponse": {
             "type": "object",
@@ -572,7 +591,8 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "type": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "internal-server-error"
                 }
             }
         },
@@ -685,7 +705,10 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "type": {
-                    "type": "string"
+                    "type": "string",
+                    "enum": [
+                        "validation-error"
+                    ]
                 }
             }
         }

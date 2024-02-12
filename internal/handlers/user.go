@@ -1,10 +1,8 @@
 package handlers
 
 import (
-	"encoding/json"
 	"errors"
 	"net/http"
-	"strconv"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/jackc/pgx/v5"
@@ -21,10 +19,13 @@ func NewUserHandler(queries *db.Queries) *UserHandler {
 
 	userHandler.Post("/", userHandler.createUser)
 	userHandler.Get("/", userHandler.getUsers)
-	userHandler.Put("/{id}", userHandler.updateUser)
-	userHandler.Delete("/{id}", userHandler.deleteUser)
-	userHandler.Get("/{id}/todos", userHandler.getUserTodos)
 
+	userHandler.Group(func(r chi.Router) {
+		r.Use(userCtx)
+		r.Put("/{id}", userHandler.updateUser)
+		r.Delete("/{id}", userHandler.deleteUser)
+		r.Get("/{id}/todos", userHandler.getUserTodos)
+	})
 	return userHandler
 }
 
@@ -42,7 +43,7 @@ func NewUserHandler(queries *db.Queries) *UserHandler {
 func (u *UserHandler) createUser(w http.ResponseWriter, r *http.Request) {
 	user := &UserRequest{}
 
-	if err := decodeAndValidate(w, r, user); err != nil {
+	if !decodeAndValidate(w, r, user) {
 		return
 	}
 
@@ -53,14 +54,7 @@ func (u *UserHandler) createUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp, err := json.Marshal(dbUser)
-	if err != nil {
-		writeInternalServerError(w, err)
-		return
-	}
-
-	w.WriteHeader(http.StatusCreated)
-	w.Write(resp)
+	writeJson(w, dbUser, http.StatusCreated)
 }
 
 // @Summary Get all users
@@ -77,13 +71,7 @@ func (u *UserHandler) getUsers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp, err := json.Marshal(users)
-	if err != nil {
-		writeInternalServerError(w, err)
-		return
-	}
-
-	w.Write(resp)
+	writeJson(w, users, http.StatusOK)
 }
 
 // @Summary Update an existing user
@@ -100,26 +88,16 @@ func (u *UserHandler) getUsers(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 {object} InternalErrorResponse "Internal server error"
 // @Router /user/{id} [put]
 func (u *UserHandler) updateUser(w http.ResponseWriter, r *http.Request) {
-	userIdParam := chi.URLParam(r, "id")
-	if userIdParam == "" {
-		writeUserNotFoundError(w, userIdParam)
-		return
-	}
-
-	userId, err := strconv.Atoi(userIdParam)
-	if err != nil {
-		writeInvalidUserIdError(w, userIdParam)
-		return
-	}
+	userID := r.Context().Value(userIDKey).(int32)
 
 	user := &UserRequest{}
 
-	if err := decodeAndValidate(w, r, user); err != nil {
+	if !decodeAndValidate(w, r, user) {
 		return
 	}
 
 	params := db.UpdateUserParams{
-		ID:       int32(userId),
+		ID:       int32(userID),
 		Username: user.Username,
 		Email:    user.Email,
 		Password: user.Password,
@@ -128,20 +106,14 @@ func (u *UserHandler) updateUser(w http.ResponseWriter, r *http.Request) {
 	dbUser, err := u.queries.UpdateUser(r.Context(), params)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			writeUserNotFoundError(w, userIdParam)
+			writeUserNotFoundError(w, userID)
 			return
 		}
 		writeInternalServerError(w, err)
 		return
 	}
 
-	resp, err := json.Marshal(dbUser)
-	if err != nil {
-		writeInternalServerError(w, err)
-		return
-	}
-
-	w.Write(resp)
+	writeJson(w, dbUser, http.StatusOK)
 }
 
 // @Summary Delete an existing user
@@ -154,17 +126,7 @@ func (u *UserHandler) updateUser(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 {object} InternalErrorResponse "Internal server error"
 // @Router /user/{id} [delete]
 func (u *UserHandler) deleteUser(w http.ResponseWriter, r *http.Request) {
-	userIdParam := chi.URLParam(r, "id")
-	if userIdParam == "" {
-		writeUserNotFoundError(w, userIdParam)
-		return
-	}
-
-	userID, err := strconv.Atoi(userIdParam)
-	if err != nil {
-		writeInvalidUserIdError(w, userIdParam)
-		return
-	}
+	userID := r.Context().Value(userIDKey).(int32)
 
 	affectedRows, err := u.queries.DeleteUser(r.Context(), int32(userID))
 	if err != nil {
@@ -172,7 +134,7 @@ func (u *UserHandler) deleteUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if affectedRows == 0 {
-		writeUserNotFoundError(w, userIdParam)
+		writeUserNotFoundError(w, userID)
 		return
 	}
 
@@ -191,28 +153,19 @@ func (u *UserHandler) deleteUser(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 {object} InternalErrorResponse "Internal server error"
 // @Router /user/{id}/todos [get]
 func (u *UserHandler) getUserTodos(w http.ResponseWriter, r *http.Request) {
-	userIdParam := chi.URLParam(r, "id")
-	if userIdParam == "" {
-		writeUserNotFoundError(w, userIdParam)
-		return
-	}
-
-	userId, err := strconv.Atoi(userIdParam)
-	if err != nil {
-		writeInvalidUserIdError(w, userIdParam)
-		return
-	}
+	userID := r.Context().Value(userIDKey).(int32)
 
 	var todos []db.Todo
+	var err error
 
 	q := r.URL.Query().Get("type")
 	switch q {
 	case "assigned":
-		todos, err = u.queries.GetAssignedTodosOfUser(r.Context(), int32(userId))
+		todos, err = u.queries.GetAssignedTodosOfUser(r.Context(), userID)
 	case "created":
-		todos, err = u.queries.GetCreatedTodosOfUser(r.Context(), int32(userId))
+		todos, err = u.queries.GetCreatedTodosOfUser(r.Context(), userID)
 	case "":
-		todos, err = u.queries.GetAllTodosOfUser(r.Context(), int32(userId))
+		todos, err = u.queries.GetAllTodosOfUser(r.Context(), userID)
 	default:
 		writeInvalidQueryError(w, q, []string{"assigned", "created", ""})
 		return
@@ -223,11 +176,5 @@ func (u *UserHandler) getUserTodos(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp, err := json.Marshal(todos)
-	if err != nil {
-		writeInternalServerError(w, err)
-		return
-	}
-
-	w.Write(resp)
+	writeJson(w, todos, http.StatusOK)
 }

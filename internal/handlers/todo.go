@@ -1,10 +1,8 @@
 package handlers
 
 import (
-	"encoding/json"
 	"errors"
 	"net/http"
-	"strconv"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/jackc/pgx/v5/pgconn"
@@ -21,10 +19,13 @@ func NewTodoHandler(queries *db.Queries) *TodoHandler {
 
 	todoHandler.Post("/", todoHandler.createTodo)
 	todoHandler.Get("/", todoHandler.getTodos)
-	todoHandler.Put("/{id}", todoHandler.updateTodo)
-	todoHandler.Delete("/{id}", todoHandler.deleteTodo)
-	todoHandler.Post("/{id}/assign", todoHandler.assignTodo)
 
+	todoHandler.Group(func(r chi.Router) {
+		r.Use(todoCtx)
+		r.Put("/{id}", todoHandler.updateTodo)
+		r.Delete("/{id}", todoHandler.deleteTodo)
+		r.Post("/{id}/assign", todoHandler.assignTodo)
+	})
 	return todoHandler
 }
 
@@ -42,7 +43,7 @@ func NewTodoHandler(queries *db.Queries) *TodoHandler {
 func (t *TodoHandler) createTodo(w http.ResponseWriter, r *http.Request) {
 	todo := &TodoCreateRequest{}
 
-	if err := decodeAndValidate(w, r, todo); err != nil {
+	if !decodeAndValidate(w, r, todo) {
 		return
 	}
 
@@ -53,18 +54,16 @@ func (t *TodoHandler) createTodo(w http.ResponseWriter, r *http.Request) {
 	}
 	dbTodo, err := t.queries.CreateTodo(r.Context(), params)
 	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr); pgErr.Code == "23503" {
+			writeUserNotFoundError(w, todo.CreatorID)
+			return
+		}
 		writeInternalServerError(w, err)
 		return
 	}
 
-	resp, err := json.Marshal(dbTodo)
-	if err != nil {
-		writeInternalServerError(w, err)
-		return
-	}
-
-	w.WriteHeader(http.StatusCreated)
-	w.Write(resp)
+	writeJson(w, dbTodo, http.StatusCreated)
 }
 
 // @Summary Get all todos
@@ -81,13 +80,7 @@ func (t *TodoHandler) getTodos(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp, err := json.Marshal(todos)
-	if err != nil {
-		writeInternalServerError(w, err)
-		return
-	}
-
-	w.Write(resp)
+	writeJson(w, todos, http.StatusOK)
 }
 
 // @Summary Update a todo
@@ -104,44 +97,32 @@ func (t *TodoHandler) getTodos(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 {object} InternalErrorResponse "Internal server error"
 // @Router /todo/{id} [put]
 func (t *TodoHandler) updateTodo(w http.ResponseWriter, r *http.Request) {
-	todoIdParam := chi.URLParam(r, "id")
-	if todoIdParam == "" {
-		writeTodoNotFoundError(w, todoIdParam)
-		return
-	}
-
-	todoId, err := strconv.Atoi(todoIdParam)
-	if err != nil {
-		writeInvalidTodoIdError(w, todoIdParam)
-		return
-	}
+	todoID := r.Context().Value(todoIDKey).(int32)
 
 	todo := &TodoUpdateRequest{}
 
-	if err := decodeAndValidate(w, r, todo); err != nil {
+	if !decodeAndValidate(w, r, todo) {
 		return
 	}
 
 	params := db.UpdateTodoParams{
-		ID:          int32(todoId),
+		ID:          todoID,
 		Title:       todo.Title,
 		Description: todo.Description,
 		Completed:   todo.Completed,
 	}
 	dbTodo, err := t.queries.UpdateTodo(r.Context(), params)
 	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr); pgErr.Code == "23503" {
+			writeUserNotFoundError(w, todo.CreatorID)
+			return
+		}
 		writeInternalServerError(w, err)
 		return
 	}
 
-	resp, err := json.Marshal(dbTodo)
-	if err != nil {
-		writeInternalServerError(w, err)
-		return
-	}
-
-	w.WriteHeader(http.StatusOK)
-	w.Write(resp)
+	writeJson(w, dbTodo, http.StatusOK)
 }
 
 // @Summary Delete a todo
@@ -154,25 +135,15 @@ func (t *TodoHandler) updateTodo(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 {object} InternalErrorResponse "Internal server error"
 // @Router /todo/{id} [delete]
 func (t *TodoHandler) deleteTodo(w http.ResponseWriter, r *http.Request) {
-	todoIdParam := chi.URLParam(r, "id")
-	if todoIdParam == "" {
-		writeTodoNotFoundError(w, todoIdParam)
-		return
-	}
+	todoID := r.Context().Value(todoIDKey).(int32)
 
-	todoId, err := strconv.Atoi(todoIdParam)
-	if err != nil {
-		writeInvalidTodoIdError(w, todoIdParam)
-		return
-	}
-
-	affectedRows, err := t.queries.DeleteTodo(r.Context(), int32(todoId))
+	affectedRows, err := t.queries.DeleteTodo(r.Context(), todoID)
 	if err != nil {
 		writeInternalServerError(w, err)
 		return
 	}
 	if affectedRows == 0 {
-		writeTodoNotFoundError(w, todoIdParam)
+		writeTodoNotFoundError(w, todoID)
 		return
 	}
 
@@ -189,42 +160,38 @@ func (t *TodoHandler) deleteTodo(w http.ResponseWriter, r *http.Request) {
 // @Success 201 "Created todo assignment"
 // @Failure 400 {object} ErrorResponse "Bad request"
 // @Failure 404 {object} ErrorResponse "Todo or User not found"
+// @Failure 409 {object} ErrorResponse "Duplicate assignment"
 // @Failure 422 {object} ValidationErrorResponse "Validation error"
 // @Failure 500 {object} InternalErrorResponse "Internal server error"
 // @Router /todo/{id}/assign [post]
 func (t *TodoHandler) assignTodo(w http.ResponseWriter, r *http.Request) {
-	todoIdParam := chi.URLParam(r, "id")
-	if todoIdParam == "" {
-		writeTodoNotFoundError(w, todoIdParam)
-		return
-	}
-
-	todoId, err := strconv.Atoi(todoIdParam)
-	if err != nil {
-		writeInvalidTodoIdError(w, todoIdParam)
-		return
-	}
+	todoId := r.Context().Value(todoIDKey).(int32)
 
 	assign := &TodoAssignRequest{}
 
-	if err := decodeAndValidate(w, r, assign); err != nil {
+	if !decodeAndValidate(w, r, assign) {
 		return
 	}
 
 	params := db.AssignUserToTodoParams{
-		TodoID: int32(todoId),
+		TodoID: todoId,
 		UserID: assign.UserID,
 	}
-	_, err = t.queries.AssignUserToTodo(r.Context(), params)
+	_, err := t.queries.AssignUserToTodo(r.Context(), params)
 	if err != nil {
 		var pgErr *pgconn.PgError
-		if errors.As(err, &pgErr); pgErr.Code == "23503" {
-			writeInvalidTodoAssignRequestError(w, pgErr, params.TodoID, assign.UserID)
+		if !errors.As(err, &pgErr) {
+			writeInternalServerError(w, err)
 			return
 		}
-		writeInternalServerError(w, err)
+		switch pgErr.Code {
+		case "23503":
+			writeInvalidTodoAssignRequestError(w, pgErr, params.TodoID, assign.UserID)
+		case "23505":
+			writeDuplicateTodoAssignRequestError(w)
+		}
 		return
 	}
 
-	w.WriteHeader(http.StatusNoContent)
+	w.WriteHeader(http.StatusCreated)
 }
