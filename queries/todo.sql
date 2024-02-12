@@ -1,5 +1,5 @@
 -- name: GetTodosOfUser :many
-SELECT * FROM todo
+SELECT todo.id, creator_id, title, description, completed, created_at, updated_at FROM todo
 JOIN todo_user ON todo.id = todo_user.todo_id
 WHERE todo_user.user_id = $1;
 

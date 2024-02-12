@@ -7,7 +7,6 @@ package db
 
 import (
 	"context"
-	"time"
 )
 
 const assignUserToTodo = `-- name: AssignUserToTodo :execrows
@@ -69,32 +68,20 @@ func (q *Queries) DeleteTodo(ctx context.Context, id int32) (int64, error) {
 }
 
 const getTodosOfUser = `-- name: GetTodosOfUser :many
-SELECT id, creator_id, title, description, completed, created_at, updated_at, todo_id, user_id FROM todo
+SELECT todo.id, creator_id, title, description, completed, created_at, updated_at FROM todo
 JOIN todo_user ON todo.id = todo_user.todo_id
 WHERE todo_user.user_id = $1
 `
 
-type GetTodosOfUserRow struct {
-	ID          int32     `json:"id"`
-	CreatorID   int32     `json:"creator_id"`
-	Title       string    `json:"title"`
-	Description string    `json:"description"`
-	Completed   bool      `json:"completed"`
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
-	TodoID      int32     `json:"todo_id"`
-	UserID      int32     `json:"user_id"`
-}
-
-func (q *Queries) GetTodosOfUser(ctx context.Context, userID int32) ([]GetTodosOfUserRow, error) {
+func (q *Queries) GetTodosOfUser(ctx context.Context, userID int32) ([]Todo, error) {
 	rows, err := q.db.Query(ctx, getTodosOfUser, userID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	items := []GetTodosOfUserRow{}
+	items := []Todo{}
 	for rows.Next() {
-		var i GetTodosOfUserRow
+		var i Todo
 		if err := rows.Scan(
 			&i.ID,
 			&i.CreatorID,
@@ -103,8 +90,6 @@ func (q *Queries) GetTodosOfUser(ctx context.Context, userID int32) ([]GetTodosO
 			&i.Completed,
 			&i.CreatedAt,
 			&i.UpdatedAt,
-			&i.TodoID,
-			&i.UserID,
 		); err != nil {
 			return nil, err
 		}
