@@ -5,7 +5,7 @@ export
 
 GOOSE=github.com/pressly/goose/v3/cmd/goose@latest
 
-DOCKER_CLIENT=podman
+DOCKER_CLIENT=docker
 
 create-migration:
 	go run $(GOOSE) -dir ./migrations create $(name) sql
