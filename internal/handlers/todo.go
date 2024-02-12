@@ -20,6 +20,7 @@ func NewTodoHandler(queries *db.Queries) *TodoHandler {
 	todoHandler := &TodoHandler{chi.NewRouter(), queries}
 
 	todoHandler.Post("/", todoHandler.createTodo)
+	todoHandler.Get("/", todoHandler.getTodos)
 	todoHandler.Put("/{id}", todoHandler.updateTodo)
 	todoHandler.Delete("/{id}", todoHandler.deleteTodo)
 	todoHandler.Post("/{id}/assign", todoHandler.assignTodo)
@@ -63,6 +64,29 @@ func (t *TodoHandler) createTodo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusCreated)
+	w.Write(resp)
+}
+
+// @Summary Get all todos
+// @Description Get the list of all todos.
+// @Tags Todo
+// @Produce json
+// @Success 200 {array} db.Todo "List of todos"
+// @Failure 500 {object} InternalErrorResponse "Internal server error"
+// @Router /todo [get]
+func (t *TodoHandler) getTodos(w http.ResponseWriter, r *http.Request) {
+	todos, err := t.queries.ListTodos(r.Context())
+	if err != nil {
+		writeInternalServerError(w, err)
+		return
+	}
+
+	resp, err := json.Marshal(todos)
+	if err != nil {
+		writeInternalServerError(w, err)
+		return
+	}
+
 	w.Write(resp)
 }
 

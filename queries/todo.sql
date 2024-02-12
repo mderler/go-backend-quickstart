@@ -1,3 +1,7 @@
+-- name: ListTodos :many
+SELECT * FROM todo
+ORDER BY created_at DESC;
+
 -- name: GetTodosOfUser :many
 SELECT todo.id, creator_id, title, description, completed, created_at, updated_at FROM todo
 JOIN todo_user ON todo.id = todo_user.todo_id

@@ -101,6 +101,39 @@ func (q *Queries) GetTodosOfUser(ctx context.Context, userID int32) ([]Todo, err
 	return items, nil
 }
 
+const listTodos = `-- name: ListTodos :many
+SELECT id, creator_id, title, description, completed, created_at, updated_at FROM todo
+ORDER BY created_at DESC
+`
+
+func (q *Queries) ListTodos(ctx context.Context) ([]Todo, error) {
+	rows, err := q.db.Query(ctx, listTodos)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Todo{}
+	for rows.Next() {
+		var i Todo
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatorID,
+			&i.Title,
+			&i.Description,
+			&i.Completed,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const updateTodo = `-- name: UpdateTodo :one
 UPDATE todo
 SET title = $1, description = $2, completed = $3

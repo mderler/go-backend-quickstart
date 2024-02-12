@@ -19,6 +19,33 @@ const docTemplate = `{
     "basePath": "{{.BasePath}}",
     "paths": {
         "/todo": {
+            "get": {
+                "description": "Get the list of all todos.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Todo"
+                ],
+                "summary": "Get all todos",
+                "responses": {
+                    "200": {
+                        "description": "List of todos",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/db.Todo"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.InternalErrorResponse"
+                        }
+                    }
+                }
+            },
             "post": {
                 "description": "Create a new todo with the provided todo data.",
                 "consumes": [
@@ -121,7 +148,7 @@ const docTemplate = `{
                         }
                     },
                     "422": {
-                        "description": "Todo not found",
+                        "description": "Validation error",
                         "schema": {
                             "$ref": "#/definitions/handlers.ValidationErrorResponse"
                         }
@@ -216,7 +243,7 @@ const docTemplate = `{
                         }
                     },
                     "404": {
-                        "description": "Todo not found",
+                        "description": "Todo or User not found",
                         "schema": {
                             "$ref": "#/definitions/handlers.ErrorResponse"
                         }
@@ -638,7 +665,7 @@ const docTemplate = `{
                 "detail": {
                     "type": "string"
                 },
-                "invalid-params": {
+                "invalid_params": {
                     "type": "object",
                     "additionalProperties": {
                         "$ref": "#/definitions/handlers.InvalidParam"

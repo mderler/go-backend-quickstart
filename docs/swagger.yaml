@@ -114,7 +114,7 @@ definitions:
     properties:
       detail:
         type: string
-      invalid-params:
+      invalid_params:
         additionalProperties:
           $ref: '#/definitions/handlers.InvalidParam'
         type: object
@@ -132,6 +132,24 @@ info:
   version: "1.0"
 paths:
   /todo:
+    get:
+      description: Get the list of all todos.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of todos
+          schema:
+            items:
+              $ref: '#/definitions/db.Todo'
+            type: array
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/handlers.InternalErrorResponse'
+      summary: Get all todos
+      tags:
+      - Todo
     post:
       consumes:
       - application/json
@@ -224,7 +242,7 @@ paths:
           schema:
             $ref: '#/definitions/handlers.ErrorResponse'
         "422":
-          description: Todo not found
+          description: Validation error
           schema:
             $ref: '#/definitions/handlers.ValidationErrorResponse'
         "500":
@@ -261,7 +279,7 @@ paths:
           schema:
             $ref: '#/definitions/handlers.ErrorResponse'
         "404":
-          description: Todo not found
+          description: Todo or User not found
           schema:
             $ref: '#/definitions/handlers.ErrorResponse'
         "422":
