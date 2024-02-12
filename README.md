@@ -45,3 +45,5 @@ with this stack and how to implement it.
 
 There are Users and Todos. A User can create a Todo and Users can be assigned
 to Todos.
+
+__Updates to the documentation on this templates will follow soon__
