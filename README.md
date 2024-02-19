@@ -11,7 +11,6 @@ This template will give you a basic structure including an example todo-app that
 - A lightweight router with [go-chi/chi](https://github.com/go-chi/chi/)
 - Generation of swagger docs with [swaggo/swag](https://github.com/swaggo/swag) and [swaggo/http-swagger](https://github.com/swaggo/http-swagger)
 - Request validation with [go-playground/validator](https://github.com/go-playground/validator)
-- A dependency injection system with [uber-go/fx](https://github.com/uber-go/fx)
 - Migration of a [PostgreSQL](https://www.postgresql.org/) DB with [pressly/goose](https://github.com/pressly/goose)
 - Generation of type-safe interfaces from SQL with [sqlc-dev/sqlc](https://github.com/sqlc-dev/sqlc) with the [jackc/pgx](https://github.com/jackc/pgx) driver
 - Management of environment variables with [jogo/godotenv](https://github.com/joho/godotenv)
