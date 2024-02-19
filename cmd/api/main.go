@@ -38,10 +38,11 @@ func main() {
 			os.Getenv("POSTGRES_DB"),
 		),
 	)
-
 	if err != nil {
 		log.Fatal("Error connecting with database")
 	}
+
+	defer conn.Close()
 
 	queries := db.New(conn)
 
