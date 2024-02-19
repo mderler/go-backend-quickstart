@@ -4,8 +4,6 @@
 
 The goal of this template is to create a solid starting point for a Go backend.
 
-I chose my favorite technologies for this project, but it shouldn't be too hard to swap them out with something that suits you!
-
 This template will give you a basic structure including an example todo-app that implements the following things:
 
 - A lightweight router with [go-chi/chi](https://github.com/go-chi/chi/)
@@ -31,7 +29,7 @@ To run the example, follow these steps:
 5. Run `make apply-migrations`.
 6. Run `go run cmd/api/main.go`.
 
-You can now access the documentation at http://localhost:3000/swagger/.
+The documentation is now accessible at http://localhost:3000/swagger/.
 
 ### The Todo-Example
 
@@ -44,3 +42,5 @@ with this stack and how to implement it.
 
 There are Users and Todos. A User can create a Todo and Users can be assigned
 to Todos.
+
+__Updates to the documentation on this templates will follow soon__
